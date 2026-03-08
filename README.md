@@ -1,2 +1,2 @@
 # whitelister
-addon command for mcdis
+whitelist addon command for mcdis

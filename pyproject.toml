@@ -1,0 +1,10 @@
+[project]
+name = "whitelister"
+version = "0.1.0"
+description = "whithelist addon command for mcdis"
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = [
+    "discord-py>=2.7.1",
+    "mcdis-rcon>=0.4.32a0",
+]
