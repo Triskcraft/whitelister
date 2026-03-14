@@ -1,10 +1,12 @@
+import asyncio
 import discord
-from discord import app_commands, User
+from discord import app_commands, Member
 from discord.ext import commands
 from mcdis_rcon.utils import isAdmin, mc_uuid
+from mcdis_rcon.classes import McDisClient
 
-class mdaddon(commands.Cog):
-    def __init__(self, client):
+class WhiteList(commands.Cog):
+    def __init__(self, client: McDisClient):
         self.client = client
         self.interviewer_id = 1355617895480164472
 
@@ -12,6 +14,8 @@ class mdaddon(commands.Cog):
     @app_commands.describe(action="Acción a realizar", nickname="Nombre del jugador")
     async def whitelist(self, interaction: discord.Interaction, action: str, nickname: str):
         member = interaction.user
+        assert self.client.user
+        if not isinstance(member, Member): return
         if not isAdmin(member) and self.interviewer_id not in [r.id for r in getattr(member, 'roles', [])]:
             await interaction.response.send_message("✖ No tienes permisos.", ephemeral=True)
             return
@@ -28,14 +32,11 @@ class mdaddon(commands.Cog):
             if not network_server:
                 await interaction.followup.send("✖ No se encontró el servidor 'Network'.")
                 return
-
+            network_server.process
             uuid = mc_uuid(nickname)
             uuid_text = uuid if uuid else "UUID no encontrado"
 
-            cmd = f"vcl {action} {nickname}"
-            result = network_server.execute(cmd)
-            if hasattr(result, '__await__'):
-                await result
+            network_server.execute(f"vcl {action} {nickname}")
 
             content = "✅ Usuario añadido a la whitelist." if action == "add" else "✅ Usuario removido de la whitelist."
 
@@ -65,5 +66,6 @@ class mdaddon(commands.Cog):
             for opt in options if current.lower() in opt
         ][:5]
 
-async def setup(bot):
-    await bot.add_cog(mdaddon(bot))
+class mdaddon(commands.Cog):
+    def __init__(self, client: McDisClient):
+        asyncio.create_task(client.add_cog(WhiteList(client)))
